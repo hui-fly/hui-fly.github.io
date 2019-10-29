@@ -1,37 +1,81 @@
-## Welcome to GitHub Pages
+# 手写一个promise
+promise主要解决的是 回调地狱 问题，学习promise的时候，可以对比着回调函数，例如某些http请求如果用promise实现是怎样的，如果用回调函数写又是怎样的。接下来是一个手写的简单的promise,让我们一起揭开promise的本来面目！！
 
-You can use the [editor on GitHub](https://github.com/hui-fly/hui-fly.github.io/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```javascript
+const PENDING = Symbol('pending')
+  const FULFILLED = Symbol('resolved')
+  const REJECTED = Symbol('reject')
+  function MyPromise(fn){
+      if(typeof fn!=='function'){
+          throw new Error('fn must be a function')
+      }
+      let state = PENDING
+      let value = null
+      let handler = {}
+      function resolve(result){
+          try{
+              state=FULFILLED
+              value=result
+              handler.onFulfill(value)
+          }catch(err){
+              reject(err)
+          }
+      }
+      function reject(error){
+          state=REJECTED;
+          value=error;
+      }
+      this.then=(onFulfill,onReject)=>{
+          switch(state){
+              case FULFILLED:onFulfill(value) 
+                  break
+              case REJECTED:onReject(value)
+                  break
+              case PENDING:handler = { onFulfill,onReject }
+          }
+      }
+      fn(resolve,reject)
+  }
+  let p=new MyPromise((resolve,reject)=>{
+      setTimeout(()=>{
+          console.log(3,' setTimeout ')
+          resolve('hello promise')
+      },3000)
+  })
+  console.log(1,p)
+  p.then((val)=>{
+      console.log(4,val)
+  })
+  console.log(2,'哈哈')
 ```
+## 运行结果
+![运行结果](/img/promise001.png)
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## 相关案例
+之前看过一个面试题：
+实现一个sleep函数：
+执行
+sleep(3000).then(()=>{
+   console.log('....')
+})
+满足3s后执行console.log
 
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/hui-fly/hui-fly.github.io/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+很像promise，草草的写了个实现方式，希望各位指正或者有更好的实现方式提出
+```javascript
+let sleep=function(ms){
+    let resolve=function(){
+        console.log('呵呵呵')
+    };
+    let fn = function(){
+        setTimeout(()=>{
+            resolve()
+        },ms)
+        return fn
+    } 
+    Function.prototype.then=function(fun){
+        resolve=fun;
+    }
+    return fn();
+}
+sleep(3000).then(()=>{console.log('哈哈哈')})
+```
