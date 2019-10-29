@@ -49,7 +49,7 @@ const PENDING = Symbol('pending')
   console.log(2,'哈哈')
 ```
 ## 运行结果
-![运行结果](/img/promise001.png)
+![运行结果](http://blog.huifly.top/img/promise001.png)
 
 ## 相关案例
 之前看过一个面试题：
